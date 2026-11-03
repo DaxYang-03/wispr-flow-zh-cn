@@ -1,46 +1,29 @@
-# 其他安装方式和工具
+# 安装与移除
 
-普通安装只需要 [首页的下载和双击步骤](../README.md#快速安装)。安装完成会自动打开中文版，无需再运行启动工具。
+## 推荐：普通 Mac 应用安装
 
-## 使用终端安装
+从 [Releases](https://github.com/DaxYang-03/wispr-flow-zh-cn/releases/latest) 下载名字以 `.dmg` 结尾的文件，打开后把“Wispr Flow 中文补丁”拖进 Applications，再从“应用程序”打开。点击“开启中文”即可。
 
-先完全退出 Wispr Flow，将下面四行一起粘贴进系统自带的“终端”，再按回车：
+也提供 ZIP：解压后得到同一个 `.app`，把它拖到“应用程序”再打开。不需要运行任何命令行脚本。不要下载 Source code，它只是开发源码。
 
-```bash
-wispr_installer="$(mktemp -t wispr-flow-zh-cn)"
-curl -fLSs https://github.com/DaxYang-03/wispr-flow-zh-cn/releases/download/v0.1.1/install.sh -o "$wispr_installer"
-bash "$wispr_installer"
-rm -f "$wispr_installer"
-```
+## 开启与关闭
 
-脚本会下载固定的 v0.1.1 安装包、校验 ZIP、安装并自动打开中文版。不会要求第二次运行启动文件。无需 Node、Homebrew 或开发工具，不要使用 sudo。
+首次窗口只有“开启中文”一个按钮。成功后窗口关闭，首次操作进程退出；顶部菜单栏组件接替日常控制。后续登录会自动生效，不需要每次手动打开。
 
-## 安装包里的文件
+点击顶部“中”字图标，按钮会根据当前状态显示“开启中文”或“关闭中文”。切换时会先正常退出正在运行的 Wispr Flow，完成后重开。若应用拒绝退出，会提示重试，不使用强制结束。
 
-| 文件 | 用途 |
-| --- | --- |
-| 安装中文补丁.command | 安装补丁，并自动打开中文版 |
-| 打开中文版.command | 以后手动打开时可用；安装过程不需要再点击 |
-| 检查安装状态.command | 显示安装与最近一次启动记录 |
-| 恢复英文原版.command | 退出应用后运行，关闭汉化和登录启动项 |
+## 从旧脚本版升级
 
-不要把单个文件移出安装包文件夹后运行，它需要旁边的运行环境和补丁文件。
+直接安装并打开新版应用，点击“开启中文”。它会自动重启 Wispr Flow 并更新原来的助手。旧版词库位置继续使用，账号、听写记录和官方应用不变。
 
-## 完全卸载
+## 移除
 
-完全退出应用，运行“恢复英文原版.command”后，可以把下面的文件夹移到废纸篓：
+先在菜单栏点击“关闭中文”，再将“应用程序”中的本补丁移到废纸篓。若要清理登录项，可在 Finder 的“前往 → 前往文件夹”中打开：
 
 ```text
-~/Library/Application Support/Wispr Flow 中文助手/
+~/Library/LaunchAgents/
 ```
 
-如果下载的安装包已经删除，也可以在终端停用助手：
+移除 `local.wispr-flow.chinese-menubar.plist` 与 `local.wispr-flow.chinese-companion.plist`（后者在关闭中文时已删除）。注销后菜单栏组件不再启动。
 
-```bash
-"$HOME/Library/Application Support/Wispr Flow 中文助手/node" \
-  "$HOME/Library/Application Support/Wispr Flow 中文助手/manager.mjs" disable
-```
-
-## 更新补丁本身
-
-先退出应用，再下载安装新版并运行安装文件。新安装包会更新配套词库，自定义修改请先备份。Wispr Flow 官方应用自己的更新不会覆盖助手词库。
+译文文件保留在 `~/Library/Application Support/Wispr Flow 中文助手/`；确认不再使用后也可移到废纸篓。不要删除 Wispr Flow 自己的账号与听写历史目录。
