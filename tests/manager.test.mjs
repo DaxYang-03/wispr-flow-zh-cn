@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import {makeLaunchAgent,makeConfig,locations,appRunningIn,runManager} from '../src/manager.mjs';
+import {makeLaunchAgent,makeConfig,locations,appRunningIn,runManager,makeMenuLaunchAgent,MENU_SERVICE} from '../src/manager.mjs';
 test('launch config preserves normal app scheduling and safely quotes paths',()=>{
  const home='/tmp/测试 A&B<user>';
  const xml=makeLaunchAgent(home);
@@ -39,7 +39,7 @@ async function fixture(t){
    await fs.mkdir(path.dirname(stateFile),{recursive:true});
    await fs.writeFile(stateFile,JSON.stringify({state:'ready',appPid:12345,keysApplied:7264,updatedAt:new Date().toISOString()}));
   }
-  if(file==='/bin/ps')return{stdout:running?path.join(app,'Contents/MacOS/Wispr Flow'):''};
+  if(file==='/bin/ps')return{stdout:running?(args.includes('pid=,command=')?'111 ':'')+path.join(app,'Contents/MacOS/Wispr Flow'):''};
   if(file==='/usr/bin/sw_vers')return{stdout:'13.5\n'};
   if(file==='/usr/libexec/PlistBuddy')return{stdout:'1.6.1337\n'};
   if(file==='/usr/bin/codesign'){
@@ -99,4 +99,58 @@ test('launch failure cannot print successful Chinese installation',async t=>{
  const exec=async(file,args,options)=>{if(args.includes('--launch'))throw new Error('launch failed');return f.dep.exec(file,args,options)};
  await assert.rejects(runManager('install',{...f.dep,exec,print:m=>messages.push(m)}),/launch failed/);
  assert.ok(!messages.some(m=>m.includes('中文界面已打开')));
+});
+
+test('native menu service uses an app executable without a Dock entry',()=>{
+ const xml=makeMenuLaunchAgent('/Applications/Wispr Flow 中文补丁.app');
+ assert.match(xml,/Contents\/Library\/LoginItems/);
+ assert.match(xml,/\/usr\/bin\/open/);
+ assert.match(xml,/--menu-bar/);assert.match(xml,/<string>Interactive<\/string>/);
+ assert.ok(!xml.includes('/Users/'));
+});
+async function guiFixture(t){
+ const f=await fixture(t);
+ const uiApp=path.join(f.root,'应用程序/Wispr Flow 中文补丁.app');
+ await fs.mkdir(path.join(uiApp,'Contents/MacOS'),{recursive:true});
+ await fs.writeFile(path.join(uiApp,'Contents/MacOS/WisprFlowChinese'),'native fixture');
+ const menuExecutable=path.join(uiApp,'Contents/Library/LoginItems/Wispr Flow 中文补丁菜单栏.app/Contents/MacOS/WisprFlowChinese');
+ await fs.mkdir(path.dirname(menuExecutable),{recursive:true});await fs.writeFile(menuExecutable,'menu fixture');
+ const base=f.dep.exec;
+ const exec=async(file,args,options)=>{
+  if(file==='/bin/launchctl' && args[0]==='print' && args[1].endsWith('/'+MENU_SERVICE))throw new Error('not yet loaded');
+  return base(file,args,options);
+ };
+ const signals=[];
+ const signal=(pid,name)=>{signals.push({pid,name});f.setRunning(false)};
+ f.dep={...f.dep,uiAppPath:uiApp,uiVersion:'0.2.0',exec,signal};
+ return{...f,signals};
+}
+test('GUI enable quits official app gracefully, installs, and persists menu auto-start',async t=>{
+ const f=await guiFixture(t);f.setRunning(true);
+ await runManager('gui-enable',f.dep);
+ assert.deepEqual(f.signals,[{pid:111,name:'SIGTERM'}]);
+ const loc=locations(f.home),state=JSON.parse(await fs.readFile(path.join(loc.directory,'gui-state.json'),'utf8'));
+ assert.equal(state.enabled,true);assert.equal(state.onboardingCompleted,true);
+ assert.match(await fs.readFile(path.join(f.home,'Library/LaunchAgents',MENU_SERVICE+'.plist'),'utf8'),/--menu-bar/);
+ assert.equal(f.calls.filter(c=>c.args.includes('--launch')).length,1);
+});
+test('GUI disable keeps menu installed and reopens original app without localization',async t=>{
+ const f=await guiFixture(t);await runManager('gui-enable',f.dep);f.setRunning(true);
+ await runManager('gui-disable',f.dep);
+ const loc=locations(f.home);
+ assert.equal(JSON.parse(await fs.readFile(path.join(loc.directory,'gui-state.json'),'utf8')).enabled,false);
+ await assert.rejects(fs.access(loc.plist));
+ await fs.access(path.join(f.home,'Library/LaunchAgents',MENU_SERVICE+'.plist'));
+ assert.ok(f.calls.some(c=>c.file==='/usr/bin/open' && c.args[0]===f.app));
+});
+test('GUI does not force-kill an app that refuses to quit',async t=>{
+ const f=await guiFixture(t);f.setRunning(true);const signals=[];
+ await assert.rejects(runManager('gui-enable',{...f.dep,signal:(pid,name)=>signals.push({pid,name}),quitTimeoutMs:0}),/结束录音/);
+ assert.deepEqual(signals,[{pid:111,name:'SIGTERM'}]);
+ assert.ok(!f.calls.some(c=>c.file==='/bin/launchctl' && c.args[0]==='bootout'));
+});
+test('GUI validates signature before quitting any process',async t=>{
+ const f=await guiFixture(t);f.setRunning(true);f.setValid(false);
+ await assert.rejects(runManager('gui-enable',f.dep),/官方签名/);
+ assert.equal(f.signals.length,0);
 });

@@ -8,6 +8,7 @@ import { promisify } from 'node:util';
 import crypto from 'node:crypto';
 const execute = promisify(execFile);
 export const SERVICE = 'local.wispr-flow.chinese-companion';
+export const MENU_SERVICE = 'local.wispr-flow.chinese-menubar';
 export const APP_PATH = '/Applications/Wispr Flow.app';
 const PAYLOAD_FILES = ['manager.mjs', 'wispr-companion.mjs', 'runtime-i18n-injector.js', 'wispr-launch', 'wispr-launch.c'];
 export function locations(home) {
@@ -62,6 +63,7 @@ export async function runManager(action, dependencies = {}) {
   const options = { timeout: 60000, maxBuffer: 4 * 1024 * 1024 };
   if (platform !== 'darwin') throw new Error('此补丁仅支持 macOS。Windows、iPhone 和 Linux 暂不支持。');
   if (uid === 0) throw new Error('请用当前登录用户运行，不要使用 sudo。');
+  if (action === 'gui-enable' || action === 'gui-disable') return runGuiAction(action, dependencies);
   if (!['install', 'disable', 'launch', 'status', 'check'].includes(action)) throw new Error('可用操作：install / disable / launch / status / check');
   const isRunning = async () => appRunningIn((await exec('/bin/ps', ['-axo', 'command='], options)).stdout, appPath);
   if (action === 'status') {
@@ -131,7 +133,78 @@ export async function runManager(action, dependencies = {}) {
   print('安装完成，中文界面已打开。以后直接点击原来的 Wispr Flow 图标即可。');
   return { directory: loc.directory, plist: loc.plist, ready };
 }
+export function makeMenuLaunchAgent(applicationPath) {
+  const escape = value => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+  const helper = path.join(applicationPath, 'Contents/Library/LoginItems/Wispr Flow 中文补丁菜单栏.app');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict><key>Label</key><string>${MENU_SERVICE}</string><key>ProgramArguments</key><array><string>/usr/bin/open</string><string>-g</string><string>-a</string><string>${escape(helper)}</string><string>--args</string><string>--menu-bar</string></array><key>RunAtLoad</key><true/><key>KeepAlive</key><false/><key>ThrottleInterval</key><integer>10</integer><key>ProcessType</key><string>Interactive</string></dict></plist>\n`;
+}
+export async function runGuiAction(action, dependencies = {}) {
+  const home = dependencies.home ?? os.homedir();
+  const uid = dependencies.uid ?? process.getuid();
+  const exec = dependencies.exec ?? execute;
+  const signal = dependencies.signal ?? ((pid, name) => process.kill(pid, name));
+  const appPath = dependencies.appPath ?? APP_PATH;
+  const print = dependencies.print ?? console.log;
+  const loc = locations(home), options = { timeout: 60000, maxBuffer: 4 * 1024 * 1024 };
+  const statePath = path.join(loc.directory, 'gui-state.json');
+  const uiAppPath = dependencies.uiAppPath;
+  if (action === 'gui-enable' && (!uiAppPath || !await exists(path.join(uiAppPath, 'Contents/MacOS/WisprFlowChinese')) || !await exists(path.join(uiAppPath, 'Contents/Library/LoginItems/Wispr Flow 中文补丁菜单栏.app/Contents/MacOS/WisprFlowChinese')))) throw new Error('找不到中文补丁应用，请将它放入“应用程序”后重试。');
+  // Validate the original application before interrupting its current session.
+  if (await exists(path.join(appPath, 'Contents/MacOS/Wispr Flow'))) await runManager('check', dependencies);
+  else if (action === 'gui-enable') throw new Error('请先从官网安装 Wispr Flow 并登录，再开启中文。');
+  const executable = path.join(appPath, 'Contents/MacOS/Wispr Flow');
+  async function processes() {
+    const { stdout } = await exec('/bin/ps', ['-axo', 'pid=,command='], options);
+    const found = [];
+    for (const line of stdout.split('\n')) {
+      const match = line.match(/^\s*(\d+)\s+(.+)$/);
+      if (match && (match[2] === executable || match[2].startsWith(executable + ' '))) found.push(Number(match[1]));
+    }
+    return found;
+  }
+  const running = await processes();
+  if (running.length) {
+    print('正在退出 Wispr Flow……');
+    for (const pid of running) {
+      // Never target a helper, another app or a PID that changed identity.
+      if (!(await processes()).includes(pid)) continue;
+      try { signal(pid, 'SIGTERM'); } catch (error) { if (error.code !== 'ESRCH') throw error; }
+    }
+    const deadline = Date.now() + (dependencies.quitTimeoutMs ?? 10000);
+    while ((await processes()).length) {
+      if (Date.now() >= deadline) throw new Error('Wispr Flow 暂时无法退出。请结束录音并退出它，再重试。');
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
+  }
+  if (action === 'gui-disable') {
+    await runManager('disable', dependencies);
+    let current = {};
+    try { current = JSON.parse(await fs.readFile(statePath, 'utf8')); } catch {}
+    await writeAtomic(statePath, JSON.stringify({ ...current, onboardingCompleted: true, enabled: false, updatedAt: new Date().toISOString() }, null, 2) + '\n');
+    if (running.length) await exec('/usr/bin/open', [appPath], options);
+    print('中文已关闭，已恢复官方界面。');
+    return { enabled: false };
+  }
+  print('正在开启中文……');
+  const installed = await runManager('install', dependencies);
+  await writeAtomic(statePath, JSON.stringify({ onboardingCompleted: true, enabled: true, applicationPath: uiAppPath, version: dependencies.uiVersion ?? '0.2.0', updatedAt: new Date().toISOString() }, null, 2) + '\n');
+  const plist = path.join(home, 'Library/LaunchAgents', MENU_SERVICE + '.plist');
+  await writeAtomic(plist, makeMenuLaunchAgent(uiAppPath));
+  await exec('/usr/bin/plutil', ['-lint', plist], options);
+  const domain = 'gui/' + uid;
+  let loaded = false;
+  try { await exec('/bin/launchctl', ['print', domain + '/' + MENU_SERVICE], options); loaded = true; } catch {}
+  if (!loaded) await exec('/bin/launchctl', ['bootstrap', domain, plist], options);
+  print('中文已开启，以后会自动生效。');
+  return { enabled: true, ...installed };
+}
+
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  try { await runManager(process.argv[2] ?? 'status'); }
+  try {
+    const argument = name => { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : undefined; };
+    await runManager(process.argv[2] ?? 'status', { uiAppPath: argument('--ui-app'), uiVersion: argument('--ui-version') });
+  }
   catch (error) { console.error('操作未完成：' + error.message); process.exitCode = 1; }
 }

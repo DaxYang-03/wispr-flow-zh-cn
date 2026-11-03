@@ -9,16 +9,15 @@ jobs:
   verify:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '24'
       - run: npm test
       - run: npm run validate
       - name: Build universal launch shim
         run: clang -O2 -Wall -Wextra -Werror -mmacosx-version-min=13.5 -arch arm64 -arch x86_64 src/wispr-launch.c -o "$RUNNER_TEMP/wispr-launch"
-      - name: Check launcher scripts
-        run: |
-          bash -n scripts/bootstrap.sh
-          bash -n scripts/install-release.sh
-          for file in scripts/launchers/*.command; do zsh -n "$file"; done
+      - name: Compile native menu-bar app
+        run: xcrun swiftc -swift-version 5 -parse-as-library -O -target arm64-apple-macos13.5 -framework AppKit src/macos/App.swift -o "$RUNNER_TEMP/WisprFlowChinese"
+      - name: Compile native menu-bar helper
+        run: xcrun swiftc -D MENU_SWIFTUI -swift-version 5 -parse-as-library -O -target arm64-apple-macos13.5 -framework AppKit -framework SwiftUI src/macos/App.swift src/macos/MenuApp.swift -o "$RUNNER_TEMP/WisprFlowChineseMenu"

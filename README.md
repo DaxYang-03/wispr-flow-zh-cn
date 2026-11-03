@@ -1,56 +1,52 @@
 # Wispr Flow 中文补丁（Mac）
 
-让 Wispr Flow 的应用内界面显示简体中文。
-
-**下载安装包、解压，然后双击一次「安装中文补丁.command」。安装结束会自动打开中文版，不需要再点其他文件。**
+一个普通的 Mac 应用。首次打开后，点击“开启中文”，它会自动重启 Wispr Flow 并显示中文界面。
 
 ## 快速安装
 
-1. **先退出 Wispr Flow。** 点击屏幕顶部的 **Wispr Flow → Quit Wispr Flow**。只关闭窗口不算退出。
-2. **[点击这里下载安装包](https://github.com/DaxYang-03/wispr-flow-zh-cn/releases/download/v0.1.1/Wispr-Flow-Chinese-v0.1.1-macOS.zip)**，下载后双击 ZIP 解压，再打开解压出来的文件夹。
-3. **双击「安装中文补丁.command」。** 会出现一个终端窗口，这是安装程序在运行，不用输入任何命令。
-4. **等它自动打开中文界面。** 安装程序会确认中文加载完成，再显示“安装完成”。通常需要数秒，最多等待约半分钟。
+1. **[下载安装文件](https://github.com/DaxYang-03/wispr-flow-zh-cn/releases/download/v0.2.0/Wispr-Flow-Chinese-v0.2.0.dmg)**，双击打开。
+2. 把 **「Wispr Flow 中文补丁」** 拖进旁边的 **Applications（应用程序）** 文件夹，然后从“应用程序”打开它。
+3. 点击窗口里唯一的按钮 **「开启中文」**，等它完成。
 
-**以后直接点击原来的 Wispr Flow 图标即可，不必再运行安装文件。**
+**不用打开终端，也不用运行脚本。** 你不需要手动关闭 Wispr Flow：按钮会自动退出它、开启中文，再重新打开。请先结束正在进行的录音。
 
-第一次使用 Wispr Flow 的人，需要先从 [官网](https://wisprflow.ai/downloads) 安装原版、登录，并完成原版要求的权限授权。应用要放在 Mac 的“应用程序”文件夹中，名称保持为 **Wispr Flow**。
+首次开启成功后，窗口会自动关闭，首次操作进程退出。屏幕顶部菜单栏会留下一个“中”字图标；菜单栏组件和补丁会在后续登录时自动启动。
 
-这个补丁适用于 macOS 13.5 或更新版本，并且系统也要满足官方应用的要求。安装包会自动选择 Apple Silicon 或 Intel 的运行环境。
+## 以后怎么用
 
-## 装好后常见的几个问题
+平时继续点击原来的 Wispr Flow 图标，中文会自动加载，不需要每次打开补丁应用。
 
-**还需要双击「打开中文版.command」吗？**
+需要切换时，点击顶部菜单栏的“中”字图标。弹出的界面只有一个操作按钮：
 
-不需要。v0.1.1 开始，安装完成后会自动打开中文版。这个额外工具只供以后手动重新打开时使用。
+- 当前开启：点击 **「关闭中文」**，恢复官方界面。
+- 当前关闭：点击 **「开启中文」**，重新启用中文。
 
-**为什么会出现终端窗口？**
+切换时会自动重启正在运行的 Wispr Flow。关闭中文不会移除菜单栏图标，方便以后再开启。
 
-安装程序通过这个窗口显示进度。看到“安装完成，中文界面已打开”后就可以关闭窗口。
+补丁应用**不在 Dock 中常驻**。后续打开它也不会重复显示首次设置窗口。
 
-**系统提示无法打开、无法验证或文件已损坏？**
+## 安装前需要什么
 
-当前安装程序尚未经过 Apple 开发者签名和公证，首次运行可能被系统阻止。先查看 [安装受阻的处理说明](docs/TROUBLESHOOTING.md#被-macos-阻止提示无法验证开发者或已损坏)，不要关闭系统的安全保护。
+- 已从 [Wispr Flow 官网](https://wisprflow.ai/downloads) 安装官方原版，放在“应用程序”中，名称为 **Wispr Flow**。先正常登录一次，并完成官方要求的权限授权。
+- macOS 13.5 或更新版本，同时满足官方应用自己的系统要求。
+- 安装包同时包含 Apple Silicon 和 Intel 运行环境，无需额外安装开发工具。
 
-**以后更新 Wispr Flow，是否还要重装补丁？**
+如果直接从下载文件夹打开，第一次点击按钮时会尝试把补丁应用放进“应用程序”。建议按上面的拖入方式安装。
 
-通常不用。译文独立保存，应用重新启动时会再次加载。新增内容可能仍是英文；如果官方大幅改变应用结构，需要更新补丁，不能保证任意未来版本永久兼容。
+## 遇到问题
 
-**怎么恢复英文？**
+**系统阻止首次打开？** 当前应用尚未经过 Apple 开发者签名和公证，可能被 macOS 阻止。请查看 [首次打开说明](docs/TROUBLESHOOTING.md#首次打开被-macos-阻止)。不要关闭系统安全保护。
 
-先完全退出 Wispr Flow，再双击安装包中的 **「恢复英文原版.command」**。下次打开即为官方界面；中文词库会保留。
+**原来的菜单怎么还有英文？** 本项目主要翻译应用内页面，顶部 macOS 原生菜单和部分系统提示仍可能是英文。
 
-## 目前的范围
+**Wispr Flow 更新后呢？** 译文保存在应用外，重开时会再次加载；新增内容可能是英文。官方大幅改变应用结构时可能需要更新补丁，不能保证所有未来版本永久兼容。
 
-这是非官方补丁。主要翻译应用内页面；屏幕顶部的 macOS 原生菜单、部分系统提示仍可能为英文。
+**应用退出不了怎么办？** 补丁不会强制结束进程。请结束录音并正常退出 Wispr Flow，再点按钮重试。
 
-已在 **Apple Silicon / macOS 27.0 / Wispr Flow 1.6.1337** 上验证。安装包包含 Intel 运行环境，但尚未做 Intel 真实界面测试。不支持 Windows、手机或 Linux。
+## 验证范围
 
-## 其他说明
+已在 Apple Silicon / macOS 27.0 / Wispr Flow 1.6.1337 上验证核心汉化。原生应用的首次启用、菜单栏切换和自动启动测试见 [测试记录](docs/TESTING.md)。Intel 构建尚未在真实设备上验证界面。不支持 Windows、手机或 Linux。
 
-- [安装失败、权限或卡顿问题](docs/TROUBLESHOOTING.md)
-- [其他安装方式和使用工具](docs/INSTALLATION.md)
-- [实现原理与限制](docs/HOW_IT_WORKS.md)
-- [开发与构建](docs/DEVELOPMENT.md) · [测试范围](docs/TESTING.md)
-- [English](README.en.md) · [更新记录](CHANGELOG.md)
+[其他安装与移除说明](docs/INSTALLATION.md) · [故障排查](docs/TROUBLESHOOTING.md) · [实现原理](docs/HOW_IT_WORKS.md) · [开发与构建](docs/DEVELOPMENT.md) · [English](README.en.md)
 
-原创助手代码和文档采用 [MIT](LICENSE)，第三方权利说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+原创代码和文档采用 [MIT](LICENSE)，第三方说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。这是非官方项目，与 Wispr Flow 官方无隶属关系。
