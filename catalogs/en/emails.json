@@ -1,0 +1,4 @@
+{
+  "degraded_network_work_email_it_request_body": "Hi team,\n\nWispr Flow, my dictation app, says our network settings limit its performance. Could you review the setup it recommends?\n\n{{articleUrl}}\n\nSupport is CC'd.\n\nThanks!",
+  "degraded_network_work_email_it_request_subject": "IT request: Wispr Flow on our network"
+}

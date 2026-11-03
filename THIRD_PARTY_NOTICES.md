@@ -1,0 +1,6 @@
+# Third-party notices
+
+- **Wispr Flow** is a product and trademark of its respective owner. This project is unofficial and is not affiliated with or endorsed by Wispr. It does not distribute the Wispr Flow application, application source code, account credentials, or a subscription bypass. The upstream interface text in `catalogs/en/` and associated translations are kept solely as localization resources; rights in the original text remain with its owner.
+- **Node.js** is distributed only inside release ZIPs. The build downloads official macOS archives from `nodejs.org`, verifies the pinned SHA-256 checksums in `scripts/node-runtime.json`, and includes each archive's full `LICENSE` file at `runtime/<architecture>/LICENSE`. That file includes Node.js and bundled dependency notices. The Node.js executable is copied without re-signing or modifying it.
+- The small macOS launch shim is original code. It uses the operating-system responsibility attribute so the official application remains responsible for its own privacy requests. Comparable implementations are documented in [Chromium](https://chromium.googlesource.com/chromium/src/+/lkgr/base/process/launch_mac.cc) and [LLDB](https://lldb.llvm.org/cpp_reference/PosixSpawnResponsible_8h_source.html).
+- No third-party npm packages are required by the companion, installer, tests, or release builder.

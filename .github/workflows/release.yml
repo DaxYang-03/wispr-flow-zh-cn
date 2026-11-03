@@ -1,0 +1,30 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+      - name: Verify version matches tag
+        run: node -e 'if ("v" + require("./package.json").version !== process.env.GITHUB_REF_NAME) process.exit(1)'
+      - run: npm test
+      - run: npm run validate
+      - run: npm run build
+      - name: Publish installable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release already exists; leaving published assets unchanged."
+          else
+            gh release create "$GITHUB_REF_NAME" dist/*.zip dist/SHA256SUMS.txt dist/install.sh --verify-tag --title "Wispr Flow 中文补丁 $GITHUB_REF_NAME" --notes-file CHANGELOG.md
+          fi

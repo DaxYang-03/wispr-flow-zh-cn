@@ -1,0 +1,16 @@
+{
+  "name": "wispr-flow-zh-cn",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Unofficial, signature-preserving Simplified Chinese companion for Wispr Flow on macOS",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "validate": "node scripts/validate-catalogs.mjs",
+    "build": "node scripts/build-release.mjs"
+  }
+}

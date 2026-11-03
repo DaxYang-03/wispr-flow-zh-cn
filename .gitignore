@@ -1,0 +1,10 @@
+build/
+dist/
+node_modules/
+*.log
+.DS_Store
+*.app/
+.env*
+state/
+*.p12
+*.key
