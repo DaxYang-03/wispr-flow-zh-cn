@@ -16,7 +16,7 @@ else
 fi
 runtime="$bundle_dir/runtime/$runtime_arch/node"
 if [[ ! -x "$runtime" || ! -f "$bundle_dir/app/manager.mjs" ]]; then
-  echo '没有找到完整运行环境。请到 Releases 下载 Wispr-Flow-Chinese-v0.1.0-macOS.zip，解压后再安装。'
+  echo '没有找到完整运行环境。请到 Releases 下载 Wispr-Flow-Chinese-v0.1.1-macOS.zip，解压后再安装。'
   echo 'https://github.com/DaxYang-03/wispr-flow-zh-cn/releases/latest'
   exit 1
 fi

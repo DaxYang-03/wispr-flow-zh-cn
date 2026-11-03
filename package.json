@@ -1,6 +1,6 @@
 {
   "name": "wispr-flow-zh-cn",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Unofficial, signature-preserving Simplified Chinese companion for Wispr Flow on macOS",
   "type": "module",

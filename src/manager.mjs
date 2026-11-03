@@ -38,6 +38,17 @@ async function writeAtomic(file, content, mode = 0o600) {
   await fs.writeFile(temporary, content, { mode });
   await fs.rename(temporary, file);
 }
+export async function waitForChineseReady(stateFile, requestedAt, timeoutMs = 30000) {
+  const deadline = Date.now() + timeoutMs;
+  do {
+    try {
+      const state = JSON.parse(await fs.readFile(stateFile, 'utf8'));
+      if (state.state === 'ready' && Number.isInteger(state.appPid) && state.appPid > 0 && state.keysApplied > 0 && Date.parse(state.updatedAt) >= requestedAt) return state;
+    } catch {}
+    if (Date.now() >= deadline) return null;
+    await new Promise(resolve => setTimeout(resolve, Math.min(500, Math.max(1, deadline - Date.now()))));
+  } while (true);
+}
 export async function runManager(action, dependencies = {}) {
   const home = dependencies.home ?? os.homedir();
   const platform = dependencies.platform ?? process.platform;
@@ -112,9 +123,13 @@ export async function runManager(action, dependencies = {}) {
   await writeAtomic(loc.plist, makeLaunchAgent(home));
   await exec('/usr/bin/plutil', ['-lint', loc.plist], options);
   await exec('/bin/launchctl', ['bootstrap', domain, loc.plist], options);
-  print('安装完成，已设置登录后自动运行。无需修改 Wispr Flow 的官方应用或签名。');
-  print('双击“打开中文版.command”，或正常点击原来的 Wispr Flow 图标。');
-  return { directory: loc.directory, plist: loc.plist };
+  print('补丁文件已安装，正在自动打开中文版，请稍等……');
+  const requestedAt = Date.now();
+  await exec(path.join(loc.directory, 'node'), [path.join(loc.directory, 'wispr-companion.mjs'), '--config', loc.config, '--launch'], options);
+  const ready = await waitForChineseReady(path.join(loc.state, 'state.json'), requestedAt, dependencies.readinessTimeoutMs ?? 30000);
+  if (!ready) throw new Error('补丁已安装，但尚未确认中文加载完成。如果仍显示英文，请完全退出 Wispr Flow 后重开，或运行“检查安装状态.command”。');
+  print('安装完成，中文界面已打开。以后直接点击原来的 Wispr Flow 图标即可。');
+  return { directory: loc.directory, plist: loc.plist, ready };
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try { await runManager(process.argv[2] ?? 'status'); }

@@ -7,10 +7,10 @@ Unofficial Simplified Chinese interface overlay for the original Wispr Flow app.
 ## Install
 
 1. Use macOS 13.5 or newer. Install the official app at `/Applications/Wispr Flow.app`, sign in, and grant the permissions required by the official app. Quit it fully.
-2. Download `Wispr-Flow-Chinese-v0.1.0-macOS.zip` from Releases (not the automatic source-code archive), then extract it.
-3. Run `安装中文补丁.command` to install, then `打开中文版.command` to launch. Afterwards the original application icon works normally.
+2. Download `Wispr-Flow-Chinese-v0.1.1-macOS.zip` from Releases (not the automatic source-code archive), then extract it.
+3. Run `安装中文补丁.command` once. The installer automatically opens the Chinese app and waits for localization to finish; no second launcher click is needed. Afterwards the original application icon works normally.
 
-Alternatively, download the pinned [install script](https://github.com/DaxYang-03/wispr-flow-zh-cn/releases/download/v0.1.0/install.sh) and run it in Terminal. It downloads the ZIP, verifies its SHA-256 checksum, installs for the current user and launches the app. Never use sudo.
+Alternatively, download the pinned [install script](https://github.com/DaxYang-03/wispr-flow-zh-cn/releases/download/v0.1.1/install.sh) and run it in Terminal. It downloads the ZIP, verifies its SHA-256 checksum, installs for the current user and launches the app. Never use sudo.
 
 The custom launch shim is not Developer ID signed or notarized. Browser-downloaded bundles may be blocked by Gatekeeper; do not disable system security. The Chinese README documents the Terminal installation path and links to Apple's official guidance.
 

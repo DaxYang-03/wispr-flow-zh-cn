@@ -30,7 +30,7 @@ npm run build
 
 输出在 `dist/`：
 
-- `Wispr-Flow-Chinese-v0.1.0-macOS.zip`
+- `Wispr-Flow-Chinese-v0.1.1-macOS.zip`
 - `SHA256SUMS.txt`
 - `install.sh`
 

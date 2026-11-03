@@ -1,7 +1,7 @@
 #!/bin/bash
 # Download one pinned release, verify the ZIP checksum, then run its installer.
 set -euo pipefail
-version=v0.1.0
+version=v0.1.1
 repository=https://github.com/DaxYang-03/wispr-flow-zh-cn
 asset="Wispr-Flow-Chinese-${version}-macOS.zip"
 if [[ "$(/usr/bin/uname -s)" != Darwin ]]; then echo '此补丁仅支持 macOS。'; exit 1; fi
@@ -15,5 +15,3 @@ base="$repository/releases/download/$version"
 /usr/bin/ditto -x -k "$workspace/$asset" "$workspace/unpacked"
 package="$workspace/unpacked/Wispr-Flow-Chinese-$version"
 /bin/bash "$package/bootstrap.sh" install
-printf '\n正在打开中文界面……\n'
-/bin/bash "$package/bootstrap.sh" launch
